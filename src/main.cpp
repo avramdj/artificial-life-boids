@@ -2,10 +2,10 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include <spdlog/spdlog.h>
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include <spdlog/spdlog.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -114,6 +114,15 @@ int main() {
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+
+    //logging config
+    //--------------
+    spdlog::set_pattern("[%H:%M:%S] [%l] %v");
+#ifdef DEBUG
+    spdlog::set_level(spdlog::level::debug);
+#endif
+
+    spdlog::debug("Neka poruka");
 
     // glfw window creation
     // --------------------
