@@ -1,3 +1,5 @@
 # Artificial life simulation: Boids
 
-https://en.wikipedia.org/wiki/Boids
+### Resources:
+ * https://en.wikipedia.org/wiki/Boids
+ * https://www.youtube.com/watch?v=bqtqltqcQhw
