@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -66,7 +68,7 @@ struct ProgramState {
 
     void SaveToFile(std::string filename);
 
-    void LoadFromFile(std::string filename);
+    void LoadFromFile(const std::string& filename);
 };
 
 void ProgramState::SaveToFile(std::string filename) {
@@ -83,7 +85,7 @@ void ProgramState::SaveToFile(std::string filename) {
         << camera.Front.z << '\n';
 }
 
-void ProgramState::LoadFromFile(std::string filename) {
+void ProgramState::LoadFromFile(const std::string& filename) {
     std::ifstream in(filename);
     if (in) {
         in >> clearColor.r
@@ -101,7 +103,7 @@ void ProgramState::LoadFromFile(std::string filename) {
 
 ProgramState *programState;
 
-void DrawImGui(ProgramState *programState);
+void DrawImGui(ProgramState *state);
 
 int main() {
     // glfw: initialize and configure
@@ -122,7 +124,7 @@ int main() {
     spdlog::set_level(spdlog::level::debug);
 #endif
 
-    spdlog::debug("Neka poruka");
+    spdlog::debug("Debug mode is ON");
 
     // glfw window creation
     // --------------------
@@ -176,7 +178,7 @@ int main() {
 
     // load models
     // -----------
-    Model ourModel("resources/objects/backpack/backpack.obj");
+    Model ourModel("resources/objects/fish/fish.obj");
     ourModel.SetShaderTextureNamePrefix("material.");
 
     PointLight& pointLight = programState->pointLight;
@@ -199,7 +201,7 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         // per-frame time logic
         // --------------------
-        float currentFrame = glfwGetTime();
+        float currentFrame = glfwGetTime(); // NOLINT(cppcoreguidelines-narrowing-conversions)
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
@@ -311,34 +313,33 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     programState->camera.ProcessMouseScroll(yoffset);
 }
 
-void DrawImGui(ProgramState *programState) {
+void DrawImGui(ProgramState *state) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
 
     {
         static float f = 0.0f;
         ImGui::Begin("Hello window");
         ImGui::Text("Hello text");
         ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
-        ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
-        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
+        ImGui::ColorEdit3("Background color", (float *) &state->clearColor);
+        ImGui::DragFloat3("Backpack position", (float*)&state->backpackPosition);
+        ImGui::DragFloat("Backpack scale", &state->backpackScale, 0.05, 0.1, 4.0);
 
-        ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight.quadratic, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.constant", &state->pointLight.constant, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.linear", &state->pointLight.linear, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.quadratic", &state->pointLight.quadratic, 0.05, 0.0, 1.0);
         ImGui::End();
     }
 
     {
         ImGui::Begin("Camera info");
-        const Camera& c = programState->camera;
+        const Camera& c = state->camera;
         ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
         ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
         ImGui::Text("Camera front: (%f, %f, %f)", c.Front.x, c.Front.y, c.Front.z);
-        ImGui::Checkbox("Camera mouse update", &programState->CameraMouseMovementUpdateEnabled);
+        ImGui::Checkbox("Camera mouse update", &state->CameraMouseMovementUpdateEnabled);
         ImGui::End();
     }
 
@@ -357,3 +358,5 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         }
     }
 }
+
+#pragma clang diagnostic pop
