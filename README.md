@@ -1,6 +1,6 @@
 # Artificial life simulation: Boids
 
-Boids is an artificial life program, developed by Craig Reynolds in 1986, which simulates the flocking behaviour of birds.
+Boids is an artificial life program, developed by Craig Reynolds in 1986, which simulates the flocking behaviour of birds and fish.
 
  The rules applied in the simplest Boids world are as follows:
 
