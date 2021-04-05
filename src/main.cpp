@@ -21,6 +21,7 @@
 #include <engine/model.hpp>
 
 #include <iostream>
+#include <algorithm>
 #include <boids/flock.hpp>
 #include <boids/fish.hpp>
 
@@ -66,7 +67,7 @@ struct ProgramState {
     Camera camera;
     bool CameraFixedCheck = false;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
-    float fishScale = 0.5f;
+    float fishScale = 1.0f;
     float fps = 0;
     PointLight pointLight{};
     ProgramState()
@@ -194,21 +195,21 @@ int main() {
     flock.setCubeDimension(30);
     int posCap = 20;
     int dposCap = 10;
-    int numBoids = 500;
+    int numBoids = 1000;
     for(int i = 0; i < numBoids; i++){
         flock.add_boid(new Boid(glm::vec3(frandom(-posCap, posCap), frandom(-posCap, posCap), frandom(-posCap, posCap)),
                                 glm::vec3(frandom(-dposCap, dposCap), frandom(-dposCap, dposCap), frandom(-dposCap, dposCap))));
     }
 
     PointLight& pointLight = programState->pointLight;
-    pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
-    pointLight.ambient = glm::vec3(1, 1, 1);
+    pointLight.position = glm::vec3(4.5f, 1.0f, 0.0f);
+    pointLight.ambient = glm::vec3(1, 0.65, 0.65);
     pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
     pointLight.constant = 1.0f;
-    pointLight.linear = 0.09f;
-    pointLight.quadratic = 0.012f;
+    pointLight.linear = 0.1f;
+    pointLight.quadratic = 0.01f;
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -273,9 +274,12 @@ int main() {
         }
         flock.update(deltaTime*10);
         for(Boid* boid : flock.getBoids()) {
-            spdlog::debug("{0} {1} {2}", boid->getPos().x, boid->getPos().y, boid->getPos().z);
+            //spdlog::debug("{0} {1} {2}", boid->getPos().x, boid->getPos().y, boid->getPos().z);
             boidShader.use();
-            //pointLight.position = glm::vec3(10.0 * cos(currentFrame), 10.0f, 4.0 * sin(currentFrame));
+            //pointLight.position = glm::vec3(1.0 * cos(currentFrame), 1.0f, 4.0 * sin(currentFrame));
+            pointLight.position = flock.getCenterOfMass();
+//            spdlog::debug("{0}", flock.getDiameter());
+            pointLight.ambient = glm::vec3(1 - std::min(18/flock.getDiameter() - 0.4f, 1.0f), pointLight.ambient.y, pointLight.ambient.z);
             boidShader.setVec3("pointLight.position", pointLight.position);
             boidShader.setVec3("pointLight.ambient", pointLight.ambient);
             boidShader.setVec3("pointLight.diffuse", pointLight.diffuse);
@@ -306,7 +310,7 @@ int main() {
             float angle = glm::orientedAngle(glm::normalize(boid->getDirection()), glm::vec3(0,0,1), glm::vec3(0,0,1));
 
             boidModel = glm::rotate(boidModel, angle, glm::cross(glm::vec3(0,0,1), boid->getDirection()));
-            boidModel = glm::scale(boidModel, glm::vec3(programState->fishScale));    // it's a bit too big for our scene, so scale it down
+            boidModel = glm::scale(boidModel, glm::vec3(programState->fishScale / 2));    // it's a bit too big for our scene, so scale it down
 
             boidShader.setMat4("model", boidModel);
             loadedModel.Draw(boidShader);

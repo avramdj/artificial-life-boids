@@ -14,6 +14,7 @@ class Boid {
 protected:
     glm::vec3 pos;
     glm::vec3 direction;
+    float sizeMul = 1.0f;
     float dt = 0.001;
 public:
     Boid(const glm::vec3 &pos, const glm::vec3 &direction);

@@ -66,8 +66,14 @@ void Flock::align(float delta_time) {
  * Update diraction of all boids to account for center of mass.
  */
 void Flock::cohere(float delta_time) {
+    diameter = 0;
     for(Boid* boid : boids) {
-        boid->addDirection(center_of_mass - boid->getPos(), delta_time/cohere_const);
+        glm::vec3 toCenter = center_of_mass - boid->getPos();
+        float len = glm::length(toCenter);
+        if(len > diameter){
+            diameter = len;
+        }
+        boid->addDirection(toCenter, delta_time/cohere_const);
     }
 }
 
@@ -143,9 +149,13 @@ void Flock::setCubeDimension(float pad) {
 }
 
 void Flock::mulScale(float mul) {
-    collision_distance = base_collision_distance * mul * 2;
+    collision_distance = base_collision_distance * mul;
 }
 
 float Flock::getCollisionDistence() const {
     return collision_distance;
+}
+
+float Flock::getDiameter() const {
+    return diameter;
 }

@@ -24,6 +24,7 @@ private:
     float cohere_const = 50;
     float pad = 50;
     float turn = 0.5;
+    float diameter = 0;
 public:
     Flock();
     virtual ~Flock();
@@ -42,6 +43,7 @@ public:
     void mulScale(float mul);
     void avoid_edges(float delta_time);
     float getCollisionDistence() const;
+    float getDiameter() const;
 };
 
 
