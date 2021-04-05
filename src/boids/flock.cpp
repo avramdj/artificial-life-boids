@@ -44,8 +44,9 @@ void Flock::separate(float delta_time) {
     for(Boid* boid : boids) {
         for(Boid* other : boids) {
             glm::vec3 sub = boid->getPos() - other->getPos();
-            if(boid != other && abs(glm::length(sub)) < collision_distance){
-                boid->addDirection(sub, delta_time);
+            float len = glm::length(sub);
+            if(boid != other && abs(len) < collision_distance){
+                boid->addDirection(sub, delta_time/20*(1/len+0.5));
             }
         }
     }
@@ -56,7 +57,7 @@ void Flock::separate(float delta_time) {
  */
 void Flock::align(float delta_time) {
     for(Boid* boid : boids) {
-        boid->addDirection(general_direction, delta_time/10);
+        boid->addDirection(general_direction, delta_time/30);
     }
 }
 
@@ -65,7 +66,7 @@ void Flock::align(float delta_time) {
  */
 void Flock::cohere(float delta_time) {
     for(Boid* boid : boids) {
-        boid->addDirection(center_of_mass - boid->getPos(), delta_time/10);
+        boid->addDirection(center_of_mass - boid->getPos(), delta_time/100);
     }
 }
 
@@ -73,7 +74,8 @@ int Flock::size() {
     return boids.size();
 }
 
-void Flock::update(float delta_time) {
+void Flock::update(float dt) {
+    float delta_time = dt * speed;
     update_centers();
     separate(delta_time);
     align(delta_time);
@@ -83,7 +85,7 @@ void Flock::update(float delta_time) {
 
 void Flock::move(float delta_time) {
     for(Boid* boid : boids) {
-        boid->move();
+        boid->move(delta_time);
     }
 }
 
@@ -99,7 +101,7 @@ void Flock::updateParallel() {
         //cohere
         boid->addDirection(center_of_mass - boid->getPos(), 0.1);
         //move
-        boid->move();
+        boid->move(0);
     }
 }
 

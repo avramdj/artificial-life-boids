@@ -6,8 +6,8 @@
 
 Boid::Boid(const glm::vec3 &pos, const glm::vec3 &direction) : pos(pos), direction(direction) {}
 
-void Boid::move() {
-    pos += direction * dt;
+void Boid::move(float delta_time) {
+    pos += direction * delta_time;
 }
 
 void Boid::addDirection(const glm::vec3 &other_direction, float mul) {

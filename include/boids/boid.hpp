@@ -18,7 +18,7 @@ protected:
 public:
     Boid(const glm::vec3 &pos, const glm::vec3 &direction);
     virtual ~Boid();
-    void move();
+    void move(float delta_time);
     const glm::vec3 &getPos() const;
     const glm::vec3 &getDirection() const;
     float getDt() const;

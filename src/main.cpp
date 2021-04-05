@@ -12,6 +12,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/vector_angle.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <engine/filesystem.hpp>
@@ -22,6 +23,7 @@
 #include <iostream>
 #include <boids/flock.hpp>
 #include <boids/fish.hpp>
+#include <boids/cone.hpp>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -188,9 +190,11 @@ int main() {
     //----------------
     Fish::initialize();
     Flock flock;
-    for(int i = 0; i < 20; i++){
-        flock.add_boid(new Fish(glm::vec3(frandom(-20, 20), frandom(-20, 20), frandom(-20, 20)),
-                                glm::vec3(frandom(-1, 1), frandom(-1, 1), frandom(-1, 1))));
+    int poscap = 20;
+    int dposcap = 10;
+    for(int i = 0; i < 40; i++){
+        flock.add_boid(new Fish(glm::vec3(frandom(-poscap, poscap), frandom(-poscap, poscap), frandom(-poscap, poscap)),
+                                glm::vec3(frandom(-dposcap, dposcap), frandom(-dposcap, dposcap), frandom(-dposcap, dposcap))));
     }
 
     PointLight& pointLight = programState->pointLight;
@@ -276,10 +280,13 @@ int main() {
             boidShader.setMat4("view", viewBoid);
 
             glm::mat4 boidModel = glm::mat4(1.0f);
-//            glm::mat4 RotationMatrix = glm::inverse(glm::lookAt(boid->getPos(), boid->getPos() + boid->getDirection(), glm::vec3(0.0f, 1.0f, 0.0f)));
-//            boidModel *= RotationMatrix;
             boidModel = glm::translate(boidModel,
                                    boid->getPos()); // translate it down so it's at the center of the scene
+//            glm::mat4 RotationMatrix = glm::inverse(glm::lookAt(boid->getPos(), boid->getPos() + boid->getDirection(), glm::vec3(0.0f, 1.0f, 0.0f)));
+//            boidModel *= RotationMatrix;
+            float angle = glm::orientedAngle(glm::normalize(boid->getDirection()), glm::vec3(0,0,1), glm::vec3(0,0,1));
+
+            boidModel = glm::rotate(boidModel, angle, glm::cross(glm::vec3(0,0,1), boid->getDirection()));
             boidModel = glm::scale(boidModel, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
 
             boidShader.setMat4("model", boidModel);

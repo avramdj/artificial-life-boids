@@ -16,7 +16,8 @@ private:
     std::set<Boid *> boids;
     glm::vec3 center_of_mass;
     glm::vec3 general_direction;
-    float collision_distance = 4.0f;
+    float collision_distance = 5.0f;
+    float speed = 1;
 public:
     Flock();
     virtual ~Flock();
