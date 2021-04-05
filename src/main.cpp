@@ -188,7 +188,7 @@ int main() {
 
     //initialize flock
     //----------------
-    Fish::initialize();
+//    Fish::initialize();
     Flock flock;
     int poscap = 20;
     int dposcap = 10;

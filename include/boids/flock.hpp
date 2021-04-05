@@ -17,7 +17,10 @@ private:
     glm::vec3 center_of_mass;
     glm::vec3 general_direction;
     float collision_distance = 5.0f;
-    float speed = 1;
+    float speed = 1.2;
+    float sep_const = 50;
+    float align_const = 10;
+    float cohere_const = 50;
 public:
     Flock();
     virtual ~Flock();
