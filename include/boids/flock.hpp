@@ -16,15 +16,19 @@ private:
     std::set<Boid *> boids;
     glm::vec3 center_of_mass;
     glm::vec3 general_direction;
-    float collision_distance = 5.0f;
-    float speed = 1.2;
+    float collision_distance = 2.0f;
+    float speed = 1;
     float sep_const = 50;
     float align_const = 10;
     float cohere_const = 50;
+    float pad = 50;
+    float turn = 1.5;
 public:
     Flock();
     virtual ~Flock();
+    void setPad(float pad);
     const set<Boid *> &getBoids() const;
+    const glm::vec3 &getCenterOfMass() const;
     void update(float delta_time);
     void updateParallel();
     void add_boid(Boid* boid);
@@ -34,6 +38,8 @@ public:
     void cohere(float delta_time);
     void move(float delta_time);
     int size();
+
+    void avoid_edges(float delta_time);
 };
 
 

@@ -81,6 +81,7 @@ void Flock::update(float dt) {
     separate(delta_time);
     align(delta_time);
     cohere(delta_time);
+    avoid_edges(delta_time);
     move(delta_time);
 }
 
@@ -108,4 +109,35 @@ void Flock::updateParallel() {
 
 const set<Boid *> &Flock::getBoids() const {
     return boids;
+}
+
+const glm::vec3 &Flock::getCenterOfMass() const {
+    return center_of_mass;
+}
+
+void Flock::avoid_edges(float delta_time) {
+    for(Boid* boid : boids) {
+        if (boid->getPos().x < -pad){
+            boid->addDirection(glm::vec3(turn, 0, 0), delta_time);
+        }
+        if (boid->getPos().x > pad){
+            boid->addDirection(glm::vec3(-turn, 0, 0), delta_time);
+        }
+        if (boid->getPos().y < -pad){
+            boid->addDirection(glm::vec3(0, turn, 0), delta_time);
+        }
+        if (boid->getPos().y > pad){
+            boid->addDirection(glm::vec3(0, -turn, 0), delta_time);
+        }
+        if (boid->getPos().z < -pad){
+            boid->addDirection(glm::vec3(0, 0, turn), delta_time);
+        }
+        if (boid->getPos().z > pad){
+            boid->addDirection(glm::vec3(0, 0, -turn), delta_time);
+        }
+    }
+}
+
+void Flock::setPad(float pad) {
+    Flock::pad = pad;
 }

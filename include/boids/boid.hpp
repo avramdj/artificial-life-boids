@@ -10,7 +10,7 @@
 #include <engine/renderable.hpp>
 #include <engine/model.hpp>
 
-class Boid : public IRenderable{
+class Boid {
 protected:
     glm::vec3 pos;
     glm::vec3 direction;

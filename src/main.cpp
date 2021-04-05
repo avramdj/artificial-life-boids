@@ -61,12 +61,12 @@ struct PointLight {
 };
 
 struct ProgramState {
-    glm::vec3 clearColor = glm::vec3(0);
+    glm::vec3 clearColor = glm::vec3(0.05, 0.2, 0.3);
     bool ImGuiEnabled = false;
     Camera camera;
-    bool CameraMouseMovementUpdateEnabled = true;
+    bool CameraFixedCheck = true;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
-    float backpackScale = 1.0f;
+    float fishScale = 0.5f;
     PointLight pointLight{};
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -183,13 +183,14 @@ int main() {
 
     // load models
     // -----------
-    Model ourModel("resources/objects/fish/fish.obj");
-    ourModel.SetShaderTextureNamePrefix("material.");
+    Model loadedModel("resources/objects/fish/fish.obj");
+    loadedModel.SetShaderTextureNamePrefix("material.");
 
     //initialize flock
     //----------------
 //    Fish::initialize();
     Flock flock;
+    flock.setPad(30);
     int poscap = 20;
     int dposcap = 10;
     for(int i = 0; i < 40; i++){
@@ -252,7 +253,7 @@ int main() {
 //        glm::mat4 model = glm::mat4(1.0f);
 //        model = glm::translate(model,
 //                               (*(flock.getBoids().begin()))->getPos()); // translate it down so it's at the center of the scene
-//        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+//        model = glm::scale(model, glm::vec3(programState->fishScale));    // it's a bit too big for our scene, so scale it down
 //        lightShader.setMat4("model", model);
 //        ourModel.Draw(lightShader);
 
@@ -275,7 +276,13 @@ int main() {
             // viewBoid/projectionBoid transformations
             glm::mat4 projectionBoid = glm::perspective(glm::radians(programState->camera.Zoom),
                                                     (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-            glm::mat4 viewBoid = programState->camera.GetViewMatrix();
+            glm::mat4 viewBoid;
+            if(programState->CameraFixedCheck){
+                viewBoid = programState->camera.GetViewMatrix(flock.getCenterOfMass());
+            } else {
+                viewBoid = programState->camera.GetViewMatrix();
+            }
+
             boidShader.setMat4("projection", projectionBoid);
             boidShader.setMat4("view", viewBoid);
 
@@ -287,10 +294,11 @@ int main() {
             float angle = glm::orientedAngle(glm::normalize(boid->getDirection()), glm::vec3(0,0,1), glm::vec3(0,0,1));
 
             boidModel = glm::rotate(boidModel, angle, glm::cross(glm::vec3(0,0,1), boid->getDirection()));
-            boidModel = glm::scale(boidModel, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+            boidModel = glm::scale(boidModel, glm::vec3(programState->fishScale));    // it's a bit too big for our scene, so scale it down
 
             boidShader.setMat4("model", boidModel);
-            boid->getModel().Draw(boidShader);
+            loadedModel.Draw(boidShader);
+//            boid->getModel().Draw(boidShader);
         }
 
         if (programState->ImGuiEnabled)
@@ -354,7 +362,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
 
     int clickstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 
-    if (clickstate == GLFW_PRESS && programState->CameraMouseMovementUpdateEnabled)
+    if (clickstate == GLFW_PRESS && !programState->CameraFixedCheck)
         programState->camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
@@ -369,20 +377,20 @@ void DrawImGui(ProgramState *state) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    {
-        static float f = 0.0f;
-        ImGui::Begin("Hello window");
-        ImGui::Text("Hello text");
-        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
-        ImGui::ColorEdit3("Background color", (float *) &state->clearColor);
-        ImGui::DragFloat3("Backpack position", (float*)&state->backpackPosition);
-        ImGui::DragFloat("Backpack scale", &state->backpackScale, 0.05, 0.1, 4.0);
-
-        ImGui::DragFloat("pointLight.constant", &state->pointLight.constant, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.linear", &state->pointLight.linear, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.quadratic", &state->pointLight.quadratic, 0.05, 0.0, 1.0);
-        ImGui::End();
-    }
+//    {
+//        static float f = 0.0f;
+//        ImGui::Begin("Hello window");
+//        ImGui::Text("Hello text");
+//        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
+//        ImGui::ColorEdit3("Background color", (float *) &state->clearColor);
+//        ImGui::DragFloat3("Backpack position", (float*)&state->backpackPosition);
+//        ImGui::DragFloat("Backpack scale", &state->fishScale, 0.05, 0.1, 4.0);
+//
+//        ImGui::DragFloat("pointLight.constant", &state->pointLight.constant, 0.05, 0.0, 1.0);
+//        ImGui::DragFloat("pointLight.linear", &state->pointLight.linear, 0.05, 0.0, 1.0);
+//        ImGui::DragFloat("pointLight.quadratic", &state->pointLight.quadratic, 0.05, 0.0, 1.0);
+//        ImGui::End();
+//    }
 
     {
         ImGui::Begin("Camera info");
@@ -390,7 +398,7 @@ void DrawImGui(ProgramState *state) {
         ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
         ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
         ImGui::Text("Camera front: (%f, %f, %f)", c.Front.x, c.Front.y, c.Front.z);
-        ImGui::Checkbox("Camera mouse update", &state->CameraMouseMovementUpdateEnabled);
+        ImGui::Checkbox("Fix camera to center", &state->CameraFixedCheck);
         ImGui::End();
     }
 
@@ -402,14 +410,14 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
         programState->ImGuiEnabled = !programState->ImGuiEnabled;
         if (programState->ImGuiEnabled) {
-            programState->CameraMouseMovementUpdateEnabled = false;
+            programState->CameraFixedCheck = false;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
     }
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-        if (programState->CameraMouseMovementUpdateEnabled) {
+        if (programState->CameraFixedCheck) {
 //            programState->
         }
     }
