@@ -36,8 +36,8 @@ void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1024;
+const unsigned int SCR_HEIGHT = 768;
 
 // camera
 
@@ -63,6 +63,7 @@ struct PointLight {
 struct ProgramState {
 //    glm::vec3 clearColor = glm::vec3(0.05, 0.2, 0.3);
     glm::vec3 clearColor = glm::vec3(0.05, 0.05, 0.1);
+    Flock* flock = nullptr;
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraFixedCheck = false;
@@ -192,10 +193,11 @@ int main() {
     //----------------
 //    Fish::initialize();
     Flock flock;
+    programState->flock = &flock;
     flock.setCubeDimension(30);
     int posCap = 20;
     int dposCap = 10;
-    int numBoids = 1000;
+    int numBoids = 500;
     for(int i = 0; i < numBoids; i++){
         flock.add_boid(new Boid(glm::vec3(frandom(-posCap, posCap), frandom(-posCap, posCap), frandom(-posCap, posCap)),
                                 glm::vec3(frandom(-dposCap, dposCap), frandom(-dposCap, dposCap), frandom(-dposCap, dposCap))));
@@ -240,33 +242,6 @@ int main() {
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // don't forget to enable shader before setting uniforms
-//        lightShader.use();
-//        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
-//        lightShader.setVec3("pointLight.position", pointLight.position);
-//        lightShader.setVec3("pointLight.ambient", pointLight.ambient);
-//        lightShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-//        lightShader.setVec3("pointLight.specular", pointLight.specular);
-//        lightShader.setFloat("pointLight.constant", pointLight.constant);
-//        lightShader.setFloat("pointLight.linear", pointLight.linear);
-//        lightShader.setFloat("pointLight.quadratic", pointLight.quadratic);
-//        lightShader.setVec3("viewPosition", programState->camera.Position);
-//        lightShader.setFloat("material.shininess", 20.0f);
-//        // viewLight/projectionLight transformations
-//        glm::mat4 projectionLight = glm::perspective(glm::radians(programState->camera.Zoom),
-//                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-//        glm::mat4 viewLight = programState->camera.GetViewMatrix();
-//        lightShader.setMat4("projection", projectionLight);
-//        lightShader.setMat4("view", viewLight);
-//
-//        // render the loaded model
-//        glm::mat4 model = glm::mat4(1.0f);
-//        model = glm::translate(model,
-//                               (*(flock.getBoids().begin()))->getPos()); // translate it down so it's at the center of the scene
-//        model = glm::scale(model, glm::vec3(programState->fishScale));    // it's a bit too big for our scene, so scale it down
-//        lightShader.setMat4("model", model);
-//        ourModel.Draw(lightShader);
-
         // render flock
         //-------------
         if(programState->fishScale != flock.getCollisionDistence()) {
@@ -279,6 +254,7 @@ int main() {
             //pointLight.position = glm::vec3(1.0 * cos(currentFrame), 1.0f, 4.0 * sin(currentFrame));
             pointLight.position = flock.getCenterOfMass();
 //            spdlog::debug("{0}", flock.getDiameter());
+            pointLight.constant = abs(cos(2.0f*currentFrame)) * 0.7f + 0.3f;
             pointLight.ambient = glm::vec3(1 - std::min(18/flock.getDiameter() - 0.4f, 1.0f), pointLight.ambient.y, pointLight.ambient.z);
             boidShader.setVec3("pointLight.position", pointLight.position);
             boidShader.setVec3("pointLight.ambient", pointLight.ambient);
@@ -291,10 +267,10 @@ int main() {
             boidShader.setFloat("material.shininess", 50.0f);
             // viewBoid/projectionBoid transformations
             glm::mat4 projectionBoid = glm::perspective(glm::radians(programState->camera.Zoom),
-                                                    (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+                                                        (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
             glm::mat4 viewBoid;
             if(programState->CameraFixedCheck){
-                viewBoid = programState->camera.GetViewMatrix(flock.getCenterOfMass());
+                viewBoid = programState->camera.GetViewMatrix(flock.getCenterOfMass() - flock.getGeneralDirection() * 8.0f);
             } else {
                 viewBoid = programState->camera.GetViewMatrix();
             }
@@ -304,7 +280,7 @@ int main() {
 
             glm::mat4 boidModel = glm::mat4(1.0f);
             boidModel = glm::translate(boidModel,
-                                   boid->getPos()); // translate it down so it's at the center of the scene
+                                       boid->getPos()); // translate it down so it's at the center of the scene
 //            glm::mat4 RotationMatrix = glm::inverse(glm::lookAt(boid->getPos(), boid->getPos() + boid->getDirection(), glm::vec3(0.0f, 1.0f, 0.0f)));
 //            boidModel *= RotationMatrix;
             float angle = glm::orientedAngle(glm::normalize(boid->getDirection()), glm::vec3(0,0,1), glm::vec3(0,0,1));
@@ -402,6 +378,9 @@ void DrawImGui(ProgramState *state) {
         ImGui::DragFloat("pointLight.linear", &state->pointLight.linear, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.quadratic", &state->pointLight.quadratic, 0.05, 0.0, 1.0);
         ImGui::Checkbox("Fix camera to center", &state->CameraFixedCheck);
+        ImGui::Checkbox("Separation", &(state->flock->b_separate));
+        ImGui::Checkbox("Alignment", &(state->flock->b_align));
+        ImGui::Checkbox("Cohesion", &(state->flock->b_cohere));
         ImGui::End();
     }
 

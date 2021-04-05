@@ -26,6 +26,9 @@ private:
     float turn = 0.5;
     float diameter = 0;
 public:
+    bool b_cohere = true;
+    bool b_separate = true;
+    bool b_align = true;
     Flock();
     virtual ~Flock();
     void setCubeDimension(float pad);
@@ -44,6 +47,7 @@ public:
     void avoid_edges(float delta_time);
     float getCollisionDistence() const;
     float getDiameter() const;
+    const glm::vec3 &getGeneralDirection() const;
 };
 
 

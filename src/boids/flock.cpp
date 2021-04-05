@@ -84,9 +84,15 @@ int Flock::size() {
 void Flock::update(float dt) {
     float delta_time = dt * speed;
     update_centers();
-    separate(delta_time);
-    align(delta_time);
-    cohere(delta_time);
+    if(b_separate){
+        separate(delta_time);
+    }
+    if(b_align){
+        align(delta_time);
+    }
+    if(b_cohere){
+        cohere(delta_time);
+    }
     avoid_edges(delta_time);
     move(delta_time);
 }
@@ -158,4 +164,8 @@ float Flock::getCollisionDistence() const {
 
 float Flock::getDiameter() const {
     return diameter;
+}
+
+const glm::vec3 &Flock::getGeneralDirection() const {
+    return general_direction;
 }
