@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-set(PROJECT_NAME boids)
+set(PROJECT_NAME boid-simulation)
 project(${PROJECT_NAME})
 
 function(watch)
@@ -19,8 +19,8 @@ endif()
 
 list(APPEND CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -O3")
 
-file(GLOB SOURCES "src/*.cpp" "src/*.c" src/main.cpp)
-file(GLOB HEADERS "include/*.h" "include/*.hpp")
+file(GLOB SOURCES "src/*.cpp" "src/boids/*.cpp" "src/engine/*.cpp" "src/*.c" src/main.cpp)
+file(GLOB HEADERS "include/*.h" "include/boids/*.hpp" "include/engine/*.hpp" "include/*.hpp")
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -47,11 +47,11 @@ include_directories(${CMAKE_BINARY_DIR}/configuration)
 
 include_directories(include/)
 add_executable(${PROJECT_NAME}
-        ${SOURCES} include/boids/boid.hpp src/boids/boid.cpp src/boids/flock.cpp include/boids/flock.hpp src/boids/fish.cpp include/boids/fish.hpp include/engine/renderable.hpp src/engine/state.cpp include/engine/state.hpp)
+        ${SOURCES} src/common.cpp src/engine/model.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 
-# set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${PROJECT_NAME}")
+#set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${PROJECT_NAME}")
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
 file(GLOB SHADERS "shaders/*.vs"
         "shaders/*.fs")

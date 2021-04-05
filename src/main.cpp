@@ -14,10 +14,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <learnopengl/filesystem.h>
-#include <learnopengl/shader.h>
-#include <learnopengl/camera.h>
-#include <learnopengl/model.h>
+#include <engine/filesystem.hpp>
+#include <engine/shader.hpp>
+#include <engine/camera.hpp>
+#include <engine/model.hpp>
 
 #include <iostream>
 #include <boids/flock.hpp>
@@ -177,7 +177,8 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader lightShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader boidShader("resources/shaders/boid.vs", "resources/shaders/boid.fs");
 
     // load models
     // -----------
@@ -227,42 +228,58 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // don't forget to enable shader before setting uniforms
-        ourShader.use();
-        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
-        ourShader.setVec3("pointLight.position", pointLight.position);
-        ourShader.setVec3("pointLight.ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-        ourShader.setVec3("pointLight.specular", pointLight.specular);
-        ourShader.setFloat("pointLight.constant", pointLight.constant);
-        ourShader.setFloat("pointLight.linear", pointLight.linear);
-        ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
-        ourShader.setVec3("viewPosition", programState->camera.Position);
-        ourShader.setFloat("material.shininess", 20.0f);
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
-                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = programState->camera.GetViewMatrix();
-        ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);
-
-        // render the loaded model
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               programState->backpackPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
+//        lightShader.use();
+//        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
+//        lightShader.setVec3("pointLight.position", pointLight.position);
+//        lightShader.setVec3("pointLight.ambient", pointLight.ambient);
+//        lightShader.setVec3("pointLight.diffuse", pointLight.diffuse);
+//        lightShader.setVec3("pointLight.specular", pointLight.specular);
+//        lightShader.setFloat("pointLight.constant", pointLight.constant);
+//        lightShader.setFloat("pointLight.linear", pointLight.linear);
+//        lightShader.setFloat("pointLight.quadratic", pointLight.quadratic);
+//        lightShader.setVec3("viewPosition", programState->camera.Position);
+//        lightShader.setFloat("material.shininess", 20.0f);
+//        // viewLight/projectionLight transformations
+//        glm::mat4 projectionLight = glm::perspective(glm::radians(programState->camera.Zoom),
+//                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+//        glm::mat4 viewLight = programState->camera.GetViewMatrix();
+//        lightShader.setMat4("projection", projectionLight);
+//        lightShader.setMat4("view", viewLight);
+//
+//        // render the loaded model
+//        glm::mat4 model = glm::mat4(1.0f);
+//        model = glm::translate(model,
+//                               (*(flock.getBoids().begin()))->getPos()); // translate it down so it's at the center of the scene
+//        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+//        lightShader.setMat4("model", model);
+//        ourModel.Draw(lightShader);
 
         // render flock
         //-------------
-        flock.update();
-        ourShader.setMat4("flock", model);
-        flock.render(ourShader);
+        flock.update(deltaTime*10);
+        for(Boid* boid : flock.getBoids()) {
+            spdlog::debug("{0} {1} {2}", boid->getPos().x, boid->getPos().y, boid->getPos().z);
+            boidShader.use();
+            pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
+            boidShader.setVec3("viewPosition", programState->camera.Position);
+            boidShader.setFloat("material.shininess", 30.0f);
+            glm::mat4 projectionBoid = glm::perspective(glm::radians(programState->camera.Zoom),
+                                                    (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+            glm::mat4 viewBoid = programState->camera.GetViewMatrix();
+            lightShader.setMat4("projection", projectionBoid);
+            lightShader.setMat4("view", viewBoid);
+
+            glm::mat4 boidModel = glm::mat4(1.0f);
+            boidModel = glm::translate(boidModel,
+                                   boid->getPos()); // translate it down so it's at the center of the scene
+            boidModel = glm::scale(boidModel, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+
+            boidShader.setMat4("model", boidModel);
+            boid->getModel().Draw(boidShader);
+        }
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
-
-
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

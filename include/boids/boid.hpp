@@ -8,12 +8,13 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <engine/renderable.hpp>
+#include <engine/model.hpp>
 
 class Boid : public IRenderable{
 protected:
     glm::vec3 pos;
     glm::vec3 direction;
-    float dt;
+    float dt = 0.001;
 public:
     Boid(const glm::vec3 &pos, const glm::vec3 &direction);
     virtual ~Boid();

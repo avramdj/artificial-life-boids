@@ -39,25 +39,25 @@ void Flock::update_centers() {
 /*
  * Update direction of all boids to account for collision avoidance.
  */
-void Flock::separate() {
+void Flock::separate(float delta_time) {
     //TODO
 }
 
 /*
  * Update direction of all boids to account for the general direction of the flock
  */
-void Flock::align() {
+void Flock::align(float delta_time) {
     for(Boid* boid : boids) {
-        boid->addDirection(general_direction, 0.1f);
+        boid->addDirection(general_direction, delta_time);
     }
 }
 
 /*
  * Update diraction of all boids to account for center of mass.
  */
-void Flock::cohere() {
+void Flock::cohere(float delta_time) {
     for(Boid* boid : boids) {
-        boid->addDirection(center_of_mass - boid->getPos(), 0.1);
+        boid->addDirection(center_of_mass - boid->getPos(), delta_time);
     }
 }
 
@@ -65,15 +65,15 @@ int Flock::size() {
     return boids.size();
 }
 
-void Flock::update() {
+void Flock::update(float delta_time) {
     update_centers();
-    separate();
-    align();
-    cohere();
-    move();
+    separate(delta_time);
+    align(delta_time);
+    cohere(delta_time);
+    move(delta_time);
 }
 
-void Flock::move() {
+void Flock::move(float delta_time) {
     for(Boid* boid : boids) {
         boid->move();
     }
@@ -95,14 +95,6 @@ void Flock::updateParallel() {
     }
 }
 
-void Flock::render() {
-    for(Boid* boid : boids){
-        boid->render();
-    }
-}
-
-void Flock::render(Shader& shader) {
-    for(Boid* boid : boids){
-        boid->render(shader);
-    }
+const set<Boid *> &Flock::getBoids() const {
+    return boids;
 }

@@ -2,7 +2,6 @@
 //
 // Created by avram on 4.4.21..
 #include <boids/boid.hpp>
-
 #include <glm/glm.hpp>
 
 Boid::Boid(const glm::vec3 &pos, const glm::vec3 &direction) : pos(pos), direction(direction) {}

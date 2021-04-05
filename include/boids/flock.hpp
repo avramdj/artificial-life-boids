@@ -10,9 +10,8 @@
 #include <glm/glm.hpp>
 #include <cmath>
 #include <set>
-#include "fish.hpp"
 
-class Flock : public IRenderable{
+class Flock{
 private:
     std::set<Boid *> boids;
     glm::vec3 center_of_mass;
@@ -21,17 +20,16 @@ private:
 public:
     Flock();
     virtual ~Flock();
-    void update();
+    const set<Boid *> &getBoids() const;
+    void update(float delta_time);
     void updateParallel();
     void add_boid(Boid* boid);
     void update_centers();
-    void separate();
-    void align();
-    void cohere();
-    void move();
+    void separate(float delta_time);
+    void align(float delta_time);
+    void cohere(float delta_time);
+    void move(float delta_time);
     int size();
-    void render() override;
-    void render(Shader& shader) override;
 };
 
 

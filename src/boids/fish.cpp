@@ -11,15 +11,19 @@ void Fish::render() {
 }
 
 void Fish::initialize() {
-    Fish::model = Model("resources/objects/fish/fish.obj");
-    Fish::model.SetShaderTextureNamePrefix("material.");
+//    model.SetShaderTextureNamePrefix("material.");
 }
 
-Fish::Fish(const glm::vec3 &pos, const glm::vec3 &direction) : Boid(pos, direction) {}
+Fish::Fish(const glm::vec3 &pos, const glm::vec3 &direction) : Boid(pos, direction) {
+}
 
-Fish::Fish() : Boid(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0)) {}
+Fish::Fish() : Boid(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0)) {
+}
 
 void Fish::render(Shader &shader) {
-
     model.Draw(shader);
+}
+
+Model Fish::getModel() {
+    return model;
 }
