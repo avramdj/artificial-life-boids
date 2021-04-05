@@ -177,7 +177,6 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    Shader lightShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
     Shader boidShader("resources/shaders/boid.vs", "resources/shaders/boid.fs");
 
     // load models
@@ -189,9 +188,10 @@ int main() {
     //----------------
     Fish::initialize();
     Flock flock;
-    flock.add_boid(new Fish(glm::vec3(1, 0, 0), glm::vec3(0, 0, 1)));
-    flock.add_boid(new Fish(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0, 1, 0)));
-    flock.add_boid(new Fish(glm::vec3(0, 1, 1), glm::vec3(1, -1, 0)));
+    for(int i = 0; i < 20; i++){
+        flock.add_boid(new Fish(glm::vec3(frandom(-20, 20), frandom(-20, 20), frandom(-20, 20)),
+                                glm::vec3(frandom(-1, 1), frandom(-1, 1), frandom(-1, 1))));
+    }
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -202,8 +202,6 @@ int main() {
     pointLight.constant = 1.0f;
     pointLight.linear = 0.09f;
     pointLight.quadratic = 0.032f;
-
-
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -261,15 +259,25 @@ int main() {
             spdlog::debug("{0} {1} {2}", boid->getPos().x, boid->getPos().y, boid->getPos().z);
             boidShader.use();
             pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
+            boidShader.setVec3("pointLight.position", pointLight.position);
+            boidShader.setVec3("pointLight.ambient", pointLight.ambient);
+            boidShader.setVec3("pointLight.diffuse", pointLight.diffuse);
+            boidShader.setVec3("pointLight.specular", pointLight.specular);
+            boidShader.setFloat("pointLight.constant", pointLight.constant);
+            boidShader.setFloat("pointLight.linear", pointLight.linear);
+            boidShader.setFloat("pointLight.quadratic", pointLight.quadratic);
             boidShader.setVec3("viewPosition", programState->camera.Position);
-            boidShader.setFloat("material.shininess", 30.0f);
+            boidShader.setFloat("material.shininess", 20.0f);
+            // viewBoid/projectionBoid transformations
             glm::mat4 projectionBoid = glm::perspective(glm::radians(programState->camera.Zoom),
                                                     (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
             glm::mat4 viewBoid = programState->camera.GetViewMatrix();
-            lightShader.setMat4("projection", projectionBoid);
-            lightShader.setMat4("view", viewBoid);
+            boidShader.setMat4("projection", projectionBoid);
+            boidShader.setMat4("view", viewBoid);
 
             glm::mat4 boidModel = glm::mat4(1.0f);
+//            glm::mat4 RotationMatrix = glm::inverse(glm::lookAt(boid->getPos(), boid->getPos() + boid->getDirection(), glm::vec3(0.0f, 1.0f, 0.0f)));
+//            boidModel *= RotationMatrix;
             boidModel = glm::translate(boidModel,
                                    boid->getPos()); // translate it down so it's at the center of the scene
             boidModel = glm::scale(boidModel, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down

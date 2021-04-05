@@ -41,6 +41,14 @@ void Flock::update_centers() {
  */
 void Flock::separate(float delta_time) {
     //TODO
+    for(Boid* boid : boids) {
+        for(Boid* other : boids) {
+            glm::vec3 sub = boid->getPos() - other->getPos();
+            if(boid != other && abs(glm::length(sub)) < collision_distance){
+                boid->addDirection(sub, delta_time);
+            }
+        }
+    }
 }
 
 /*
@@ -48,7 +56,7 @@ void Flock::separate(float delta_time) {
  */
 void Flock::align(float delta_time) {
     for(Boid* boid : boids) {
-        boid->addDirection(general_direction, delta_time);
+        boid->addDirection(general_direction, delta_time/10);
     }
 }
 
@@ -57,7 +65,7 @@ void Flock::align(float delta_time) {
  */
 void Flock::cohere(float delta_time) {
     for(Boid* boid : boids) {
-        boid->addDirection(center_of_mass - boid->getPos(), delta_time);
+        boid->addDirection(center_of_mass - boid->getPos(), delta_time/10);
     }
 }
 

@@ -10,3 +10,8 @@ std::string readFileContents(std::string path) {
     buffer << in.rdbuf();
     return buffer.str();
 }
+
+
+float frandom(float min, float max) {
+    return min + (float)(rand()) / ((float)(RAND_MAX/(max - min)));
+}

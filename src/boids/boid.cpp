@@ -11,16 +11,20 @@ void Boid::move() {
 }
 
 void Boid::addDirection(const glm::vec3 &other_direction, float mul) {
-    direction += other_direction * mul;
-    direction = glm::normalize(direction);
+    setDirection(direction + other_direction * mul);
 }
 
 void Boid::setPos(const glm::vec3 &pos) {
     Boid::pos = pos;
 }
 
-void Boid::setDirection(const glm::vec3 &direction) {
-    Boid::direction = direction;
+void Boid::setDirection(const glm::vec3 &new_direction) {
+    Boid::direction = new_direction;
+    if(glm::length(direction) > 5) {
+        direction = glm::normalize(direction) * 5.0f;
+    } else if (glm::length(direction) < 0.5) {
+        direction = glm::normalize(direction) * 0.5f;
+    }
 }
 
 void Boid::setDt(float dt) {
