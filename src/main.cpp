@@ -23,7 +23,6 @@
 #include <iostream>
 #include <boids/flock.hpp>
 #include <boids/fish.hpp>
-#include <boids/cone.hpp>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
