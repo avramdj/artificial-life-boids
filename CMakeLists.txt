@@ -38,7 +38,9 @@ set_source_files_properties(libs/stb_image.cpp include/stb_image.h
         COMPILE_FLAGS
         "-Wno-shift-negative-value -Wno-implicit-fallthrough")
 
-set(LIBS glfw glad OpenGL::GL X11 Xrandr Xinerama Xi Xxf86vm Xcursor dl pthread freetype ${ASSIMP_LIBRARIES} STB_IMAGE imgui spdlog::spdlog)
+set(LIBS glfw glad OpenGL::GL X11 Xrandr Xi
+        #Xinerama Xxf86vm Xcursor
+        dl pthread freetype ${ASSIMP_LIBRARIES} STB_IMAGE imgui spdlog::spdlog)
 
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
