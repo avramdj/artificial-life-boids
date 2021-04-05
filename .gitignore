@@ -3,8 +3,6 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,cmake,clion,clion+all,clion+iml,c
 
 
-boids
-
 ### bin ###
 bin/
 
