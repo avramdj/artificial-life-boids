@@ -20,6 +20,9 @@ jobs:
     - name: Install OpenGL
       run: sudo apt-get install -y libgl1-mesa-dev
 
+    - name: Link GLFW3
+      run: ln -s /usr/local/lib/cmake/glfw /usr/local/lib/cmake/glfw3
+      
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
