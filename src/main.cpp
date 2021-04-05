@@ -1,5 +1,6 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -19,6 +20,8 @@
 #include <learnopengl/model.h>
 
 #include <iostream>
+#include <boids/flock.hpp>
+#include <boids/fish.hpp>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -62,7 +65,7 @@ struct ProgramState {
     bool CameraMouseMovementUpdateEnabled = true;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
     float backpackScale = 1.0f;
-    PointLight pointLight;
+    PointLight pointLight{};
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
 
@@ -128,7 +131,7 @@ int main() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Boids", nullptr, nullptr);
     if (window == nullptr) {
         spdlog::error("Failed to create GLFW window");
         glfwTerminate();
@@ -181,6 +184,14 @@ int main() {
     Model ourModel("resources/objects/fish/fish.obj");
     ourModel.SetShaderTextureNamePrefix("material.");
 
+    //initialize flock
+    //----------------
+    Fish::initialize();
+    Flock flock;
+    flock.add_boid(new Fish(glm::vec3(1, 0, 0), glm::vec3(0, 0, 1)));
+    flock.add_boid(new Fish(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0, 1, 0)));
+    flock.add_boid(new Fish(glm::vec3(0, 1, 1), glm::vec3(1, -1, 0)));
+
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
     pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
@@ -226,7 +237,7 @@ int main() {
         ourShader.setFloat("pointLight.linear", pointLight.linear);
         ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
-        ourShader.setFloat("material.shininess", 32.0f);
+        ourShader.setFloat("material.shininess", 20.0f);
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
@@ -241,6 +252,12 @@ int main() {
         model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
+
+        // render flock
+        //-------------
+        flock.update();
+        ourShader.setMat4("flock", model);
+        flock.render(ourShader);
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
@@ -297,13 +314,15 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
         firstMouse = false;
     }
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float xoffset =  lastX - xpos;
+    float yoffset = ypos - lastY; // reversed since y-coordinates go from bottom to top
 
     lastX = xpos;
     lastY = ypos;
 
-    if (programState->CameraMouseMovementUpdateEnabled)
+    int clickstate = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+
+    if (clickstate == GLFW_PRESS && programState->CameraMouseMovementUpdateEnabled)
         programState->camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
@@ -355,6 +374,11 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+    }
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+        if (programState->CameraMouseMovementUpdateEnabled) {
+//            programState->
         }
     }
 }

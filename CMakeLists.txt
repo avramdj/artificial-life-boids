@@ -47,7 +47,7 @@ include_directories(${CMAKE_BINARY_DIR}/configuration)
 
 include_directories(include/)
 add_executable(${PROJECT_NAME}
-        ${SOURCES})
+        ${SOURCES} include/boids/boid.hpp src/boids/boid.cpp src/boids/flock.cpp include/boids/flock.hpp src/boids/fish.cpp include/boids/fish.hpp include/engine/renderable.hpp src/engine/state.cpp include/engine/state.hpp)
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 
