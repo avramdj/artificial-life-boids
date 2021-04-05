@@ -61,12 +61,14 @@ struct PointLight {
 };
 
 struct ProgramState {
-    glm::vec3 clearColor = glm::vec3(0.05, 0.2, 0.3);
+//    glm::vec3 clearColor = glm::vec3(0.05, 0.2, 0.3);
+    glm::vec3 clearColor = glm::vec3(0.05, 0.05, 0.1);
     bool ImGuiEnabled = false;
     Camera camera;
-    bool CameraFixedCheck = true;
+    bool CameraFixedCheck = false;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
     float fishScale = 0.5f;
+    float fps = 0;
     PointLight pointLight{};
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -190,35 +192,43 @@ int main() {
     //----------------
 //    Fish::initialize();
     Flock flock;
-    flock.setPad(30);
-    int poscap = 20;
-    int dposcap = 10;
-    for(int i = 0; i < 40; i++){
-        flock.add_boid(new Fish(glm::vec3(frandom(-poscap, poscap), frandom(-poscap, poscap), frandom(-poscap, poscap)),
-                                glm::vec3(frandom(-dposcap, dposcap), frandom(-dposcap, dposcap), frandom(-dposcap, dposcap))));
+    flock.setCubeDimension(30);
+    int posCap = 20;
+    int dposCap = 10;
+    int numBoids = 500;
+    for(int i = 0; i < numBoids; i++){
+        flock.add_boid(new Boid(glm::vec3(frandom(-posCap, posCap), frandom(-posCap, posCap), frandom(-posCap, posCap)),
+                                glm::vec3(frandom(-dposCap, dposCap), frandom(-dposCap, dposCap), frandom(-dposCap, dposCap))));
     }
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
-    pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
+    pointLight.ambient = glm::vec3(1, 1, 1);
     pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
     pointLight.constant = 1.0f;
     pointLight.linear = 0.09f;
-    pointLight.quadratic = 0.032f;
+    pointLight.quadratic = 0.012f;
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
     // -----------
+    float time = 0;
     while (!glfwWindowShouldClose(window)) {
         // per-frame time logic
         // --------------------
         float currentFrame = glfwGetTime(); // NOLINT(cppcoreguidelines-narrowing-conversions)
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        //update framerate every second
+        if(currentFrame - time > 1) {
+            programState->fps = 1/deltaTime;
+            time = currentFrame;
+        }
 
         // input
         // -----
@@ -259,11 +269,14 @@ int main() {
 
         // render flock
         //-------------
+        if(programState->fishScale != flock.getCollisionDistence()) {
+            flock.mulScale(programState->fishScale);
+        }
         flock.update(deltaTime*10);
         for(Boid* boid : flock.getBoids()) {
             spdlog::debug("{0} {1} {2}", boid->getPos().x, boid->getPos().y, boid->getPos().z);
             boidShader.use();
-            pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
+            //pointLight.position = glm::vec3(10.0 * cos(currentFrame), 10.0f, 4.0 * sin(currentFrame));
             boidShader.setVec3("pointLight.position", pointLight.position);
             boidShader.setVec3("pointLight.ambient", pointLight.ambient);
             boidShader.setVec3("pointLight.diffuse", pointLight.diffuse);
@@ -272,7 +285,7 @@ int main() {
             boidShader.setFloat("pointLight.linear", pointLight.linear);
             boidShader.setFloat("pointLight.quadratic", pointLight.quadratic);
             boidShader.setVec3("viewPosition", programState->camera.Position);
-            boidShader.setFloat("material.shininess", 20.0f);
+            boidShader.setFloat("material.shininess", 50.0f);
             // viewBoid/projectionBoid transformations
             glm::mat4 projectionBoid = glm::perspective(glm::radians(programState->camera.Zoom),
                                                     (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
@@ -352,6 +365,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;
+        programState->camera.ProcessMouseMovement(0, 0);
     }
 
     float xoffset =  lastX - xpos;
@@ -377,28 +391,24 @@ void DrawImGui(ProgramState *state) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-//    {
-//        static float f = 0.0f;
-//        ImGui::Begin("Hello window");
-//        ImGui::Text("Hello text");
-//        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
-//        ImGui::ColorEdit3("Background color", (float *) &state->clearColor);
-//        ImGui::DragFloat3("Backpack position", (float*)&state->backpackPosition);
-//        ImGui::DragFloat("Backpack scale", &state->fishScale, 0.05, 0.1, 4.0);
-//
-//        ImGui::DragFloat("pointLight.constant", &state->pointLight.constant, 0.05, 0.0, 1.0);
-//        ImGui::DragFloat("pointLight.linear", &state->pointLight.linear, 0.05, 0.0, 1.0);
-//        ImGui::DragFloat("pointLight.quadratic", &state->pointLight.quadratic, 0.05, 0.0, 1.0);
-//        ImGui::End();
-//    }
+    {
+        static float f = 0.0f;
+        ImGui::Begin("Settings");
+        ImGui::DragFloat("Fish size", &state->fishScale, 0.05, 0.1, 4.0);
+        ImGui::DragFloat("pointLight.constant", &state->pointLight.constant, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.linear", &state->pointLight.linear, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.quadratic", &state->pointLight.quadratic, 0.05, 0.0, 1.0);
+        ImGui::Checkbox("Fix camera to center", &state->CameraFixedCheck);
+        ImGui::End();
+    }
 
     {
-        ImGui::Begin("Camera info");
+        ImGui::Begin("Camera");
         const Camera& c = state->camera;
         ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
         ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
         ImGui::Text("Camera front: (%f, %f, %f)", c.Front.x, c.Front.y, c.Front.z);
-        ImGui::Checkbox("Fix camera to center", &state->CameraFixedCheck);
+        ImGui::Text("Frame rate: (%d)", int(state->fps));
         ImGui::End();
     }
 

@@ -138,6 +138,14 @@ void Flock::avoid_edges(float delta_time) {
     }
 }
 
-void Flock::setPad(float pad) {
+void Flock::setCubeDimension(float pad) {
     Flock::pad = pad;
+}
+
+void Flock::mulScale(float mul) {
+    collision_distance = base_collision_distance * mul * 2;
+}
+
+float Flock::getCollisionDistence() const {
+    return collision_distance;
 }
