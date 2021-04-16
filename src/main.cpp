@@ -210,8 +210,8 @@ int main() {
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
     pointLight.constant = 1.0f;
-    pointLight.linear = 0.1f;
-    pointLight.quadratic = 0.01f;
+    pointLight.linear = 0.05f;
+    pointLight.quadratic = 0.015f;
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
