@@ -197,7 +197,7 @@ int main() {
     flock.setCubeDimension(30);
     int posCap = 20;
     int dposCap = 10;
-    int numBoids = 500;
+    int numBoids = 400;
     for(int i = 0; i < numBoids; i++){
         flock.add_boid(new Boid(glm::vec3(frandom(-posCap, posCap), frandom(-posCap, posCap), frandom(-posCap, posCap)),
                                 glm::vec3(frandom(-dposCap, dposCap), frandom(-dposCap, dposCap), frandom(-dposCap, dposCap))));
