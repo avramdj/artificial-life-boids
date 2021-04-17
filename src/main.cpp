@@ -190,8 +190,8 @@ int main() {
     // -------------------------
     Shader shaderCube("resources/shaders/6.1.cubemaps.vs", "resources/shaders/6.1.cubemaps.fs");
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
-    Shader shader("resources/shaders/boid.vs", "resources/shaders/boid.fs");
-//    Shader shader("resources/shaders/7.bloom.vs", "resources/shaders/7.bloom.fs");
+//    Shader shader("resources/shaders/boid.vs", "resources/shaders/boid.fs");
+    Shader shader("resources/shaders/7.bloom.vs", "resources/shaders/7.bloom.fs");
     Shader shaderLight("resources/shaders/7.bloom.vs", "resources/shaders/7.light_box.fs");
     Shader shaderBlur("resources/shaders/7.blur.vs", "resources/shaders/7.blur.fs");
     Shader shaderBloomFinal("resources/shaders/7.bloom_final.vs", "resources/shaders/7.bloom_final.fs");
@@ -465,13 +465,14 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // set lighting uniforms
+        for (auto& light : lightPositions){
+            light = flock.getCenterOfMass();
+        }
+        shader.use();
         for (unsigned int i = 0; i < lightPositions.size(); i++)
         {
             shader.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
             shader.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
-        }
-        for (auto& light : lightPositions){
-            light = flock.getCenterOfMass();
         }
         // render flock
         //-------------
@@ -589,8 +590,7 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
         shaderBloomFinal.setInt("bloom", true);
         float exp = std::max(80/(flock.getDiameter()+1), 1.0f);
-        shaderBloomFinal.setFloat("exposure", exp/2);
-        std::cout << exp << std::endl;
+        shaderBloomFinal.setFloat("exposure", 1);
         renderQuad();
 
         if (programState->ImGuiEnabled)
