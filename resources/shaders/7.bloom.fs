@@ -29,18 +29,29 @@ void main()
     // lighting
     vec3 lighting = vec3(0.0);
 //     vec3 viewDir = normalize(viewPos - FragPos);
-    for(int i = 0; i < 1; i++)
+
+    //light 1 -- white
     {
-        // diffuse
-        vec3 lightDir = normalize(lights[i].Position - FragPos);
-        float diff = max(dot(lightDir, normal), 1.0);
-        vec3 result = lights[i].Color * diff * color;
-        // attenuation (use quadratic as we have gamma correction)
-        float distance = length(FragPos - lights[i].Position);
-        result *= (1.0 / (distance));
-        lighting += result;
-                
+    vec3 lightDir = normalize(lights[0].Position - FragPos);
+    float diff = max(dot(lightDir, normal), 1.0);
+    vec3 result = lights[0].Color * diff * color;
+    // attenuation (use quadratic as we have gamma correction)
+    float distance = length(FragPos - lights[0].Position);
+    result *= (1.0 / (distance*2.0));
+    lighting += result;
     }
+    //light 2 -- blue
+    {
+    vec3 lightDir = normalize(lights[1].Position - FragPos);
+    float diff = max(dot(lightDir, normal), 1.0);
+    vec3 result = lights[1].Color * diff * color;
+    // attenuation (use quadratic as we have gamma correction)
+    float distance = length(FragPos - lights[1].Position);
+    result *= (1.0 / (distance*distance));
+    lighting += result;
+    }
+
+
     vec3 result = ambient + lighting;
     // check whether result is higher than some threshold, if so, output as bloom threshold color
     float brightness = dot(result, vec3(0.2126, 0.7152, 0.0722));

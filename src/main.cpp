@@ -253,10 +253,12 @@ int main() {
     // -------------
     // positions
     std::vector<glm::vec3> lightPositions;
-    lightPositions.push_back(glm::vec3( 0.0f, 0.5f,  1.5f));
+    lightPositions.push_back(glm::vec3( 0.0f, 0.0f, 0.0f));
+    lightPositions.push_back(glm::vec3( 0.0f, 0.0f, 0.0f));
     // colors
     std::vector<glm::vec3> lightColors;
     lightColors.push_back(glm::vec3(5.0f,   5.0f,  5.0f));
+    lightColors.push_back(glm::vec3(0.0f,   6.0f,  5.0f));
 
 
     // shader configuration
@@ -465,9 +467,9 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // set lighting uniforms
-        for (auto& light : lightPositions){
-            light = flock.getCenterOfMass();
-        }
+        lightPositions[0] = flock.getCenterOfMass();
+        lightPositions[1] = flock.getCenterOfMass() + flock.getGeneralDirection()*30.0f;
+
         shader.use();
         for (unsigned int i = 0; i < lightPositions.size(); i++)
         {
@@ -502,7 +504,7 @@ int main() {
                                                         (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
             glm::mat4 viewBoid;
             if(programState->CameraFixedCheck){
-                programState->camera.lookAtCenter(flock.getCenterOfMass());
+                programState->camera.lookAtCenter(flock.getCenterOfMass() - flock.getGeneralDirection()*5.0f);
 //                viewBoid = programState->camera.GetViewMatrix(flock.getCenterOfMass() - flock.getGeneralDirection() * 8.0f);
             }
             viewBoid = programState->camera.GetViewMatrix();
