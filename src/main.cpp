@@ -186,6 +186,10 @@ int main() {
     // build and compile shaders
     // -------------------------
     Shader boidShader("resources/shaders/boid.vs", "resources/shaders/boid.fs");
+    Shader shaderCube("resources/shaders/6.1.cubemaps.vs", "resources/shaders/6.1.cubemaps.fs");
+    Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
+    Shader shaderAA("resources/shaders/11.2.anti_aliasing.vs", "resources/shaders/11.2.anti_aliasing.fs");
+    Shader screenShader("resources/shaders/11.2.aa_post.vs", "resources/shaders/11.2.aa_post.fs");
 
     // load models
     // -----------
@@ -200,7 +204,7 @@ int main() {
     flock.setCubeDimension(30);
     int posCap = 20;
     int dposCap = 10;
-    int numBoids = 400;
+    int numBoids = 1000;
     for(int i = 0; i < numBoids; i++){
         flock.add_boid(new Boid(glm::vec3(frandom(-posCap, posCap), frandom(-posCap, posCap), frandom(-posCap, posCap)),
                                 glm::vec3(frandom(-dposCap, dposCap), frandom(-dposCap, dposCap), frandom(-dposCap, dposCap))));
@@ -213,14 +217,11 @@ int main() {
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
     pointLight.constant = 1.0f;
-    pointLight.linear = 0.05f;
-    pointLight.quadratic = 0.015f;
+    pointLight.linear = 0.1f;
+    pointLight.quadratic = 0.002f;
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    Shader shader("resources/shaders/6.1.cubemaps.vs", "resources/shaders/6.1.cubemaps.fs");
-    Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -351,8 +352,8 @@ int main() {
 
     // shader configuration
     // --------------------
-    shader.use();
-    shader.setInt("texture1", 0);
+    shaderCube.use();
+    shaderCube.setInt("texture1", 0);
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
@@ -388,7 +389,7 @@ int main() {
         if(programState->fishScale != flock.getCollisionDistence()) {
             flock.mulScale(programState->fishScale);
         }
-        flock.update(deltaTime*10);
+        flock.update(deltaTime*7.5f);
         for(Boid* boid : flock.getBoids()) {
             //spdlog::debug("{0} {1} {2}", boid->getPos().x, boid->getPos().y, boid->getPos().z);
             boidShader.use();
@@ -411,10 +412,10 @@ int main() {
                                                         (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
             glm::mat4 viewBoid;
             if(programState->CameraFixedCheck){
-                viewBoid = programState->camera.GetViewMatrix(flock.getCenterOfMass() - flock.getGeneralDirection() * 8.0f);
-            } else {
-                viewBoid = programState->camera.GetViewMatrix();
+                programState->camera.lookAtCenter(flock.getCenterOfMass());
+//                viewBoid = programState->camera.GetViewMatrix(flock.getCenterOfMass() - flock.getGeneralDirection() * 8.0f);
             }
+            viewBoid = programState->camera.GetViewMatrix();
 
             boidShader.setMat4("projection", projectionBoid);
             boidShader.setMat4("view", viewBoid);

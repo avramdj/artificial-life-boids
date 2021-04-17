@@ -66,6 +66,10 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
+    void lookAtCenter(glm::vec3 center) {
+        Front = glm::normalize(center - Position);
+    }
+
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix(glm::vec3 center) const
     {
