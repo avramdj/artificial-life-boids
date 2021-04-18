@@ -627,7 +627,7 @@ int main() {
 
         glm::mat4 model = glm::mat4(1.0f);
 
-        for (unsigned int i = 0; i < lightPositions.size(); i++)
+        for (unsigned int i = 0; i < 3; i++)
         {
             model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(lightPositions[i]));
