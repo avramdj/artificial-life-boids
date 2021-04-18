@@ -257,16 +257,19 @@ int main() {
     lightPositions.push_back(glm::vec3( 0.0f, 0.0f, 0.0f));
     lightPositions.push_back(glm::vec3( 0.0f, 0.0f, 0.0f));
     lightPositions.push_back(glm::vec3( 0.0f, 0.0f, 0.0f));
+    lightPositions.push_back(glm::vec3( 0.0f, -1.0f, 0));
     // colors
     std::vector<glm::vec3> lightColors;
     lightColors.push_back(glm::vec3(6.0f,   6.0f,  6.0f));
     lightColors.push_back(glm::vec3(7.0f,   1.0f,  5.0f));
     lightColors.push_back(glm::vec3(7.0f,   2.0f,  1.0f));
+    lightColors.push_back(glm::vec3(2.0f,   2.0f,  2.0f));
 
     std::vector<glm::vec3> lightSpecular;
     lightSpecular.push_back(glm::vec3(6.0f,   6.0f,  6.0f));
     lightSpecular.push_back(glm::vec3(7.0f,   1.0f,  5.0f));
     lightSpecular.push_back(glm::vec3(7.0f,   2.0f,  1.0f));
+    lightSpecular.push_back(glm::vec3(0.5f,   0.5f,  0.5f));
 
     glm::vec3 backpackposition = glm::vec3(0,-10, 30);
 
@@ -494,7 +497,7 @@ int main() {
         // set lighting uniforms
         lightPositions[0] = flock.getCenterOfMass();
         lightPositions[1] = flock2.getCenterOfMass();// + flock.getGeneralDirection()*10.0f;
-        lightPositions[2] = backpackposition + glm::vec3(2*sin(currentFrame*2), sin(currentFrame*2), 2*cos(currentFrame*2));
+        lightPositions[2] = backpackposition + glm::vec3(2*sin(currentFrame*2), sin(currentFrame*2), 3*cos(currentFrame*2));
 
         shader.use();
         for (unsigned int i = 0; i < lightPositions.size(); i++)
@@ -599,14 +602,9 @@ int main() {
         glm::mat4 guitarModel = glm::mat4(1.0f);
         guitarModel = glm::translate(guitarModel, backpackposition);
         shader.setMat4("model", guitarModel);
-        shader.setFloat("material.shininess", 100.0f);
+        shader.setFloat("material.shininess", 50.0f);
         backpack.Draw(shader);
 
-        glBindVertexArray(cubeVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, cubeTexture);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
 
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxShader.use();

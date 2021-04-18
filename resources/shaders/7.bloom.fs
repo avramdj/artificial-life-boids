@@ -24,11 +24,11 @@ in vec3 FragPos;
 void main()
 {
 
-    vec3 color = texture(material.texture_diffuse1, TexCoords).rgb  - vec3(0, 0, 0);
+    vec3 color = texture(material.texture_diffuse1, TexCoords).rgb;
     vec3 normal = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
     // ambient
-    vec3 ambient = 0.3 * color;
+    vec3 ambient = 0.1 * color;
     // lighting
     vec3 lighting = vec3(0.0);
 
@@ -39,7 +39,7 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = lights[0].Color * diff * color;
-    vec3 specular = lights[2].Specular * spec * vec3(texture(material.texture_specular1, TexCoords).xxx);
+    vec3 specular = lights[0].Specular * spec * vec3(texture(material.texture_specular1, TexCoords).xxx);
     vec3 result = diffuse + specular;
     // attenuation (use quadratic as we have gamma correction)
     float distance = length(FragPos - lights[0].Position);
@@ -53,7 +53,7 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = lights[1].Color * diff * color;
-    vec3 specular = lights[2].Specular * spec * vec3(texture(material.texture_specular1, TexCoords).xxx);
+    vec3 specular = lights[1].Specular * spec * vec3(texture(material.texture_specular1, TexCoords).xxx);
     vec3 result = diffuse + specular;
     // attenuation (use quadratic as we have gamma correction)
     float distance = length(FragPos - lights[1].Position);
@@ -64,7 +64,7 @@ void main()
     {
     vec3 lightDir = normalize(lights[2].Position - FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    float spec = pow(max(-dot(viewDir, reflectDir), 0.0), material.shininess);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = lights[2].Color * diff * color;
     vec3 specular = lights[2].Specular * spec * vec3(texture(material.texture_specular1, TexCoords));
@@ -72,6 +72,20 @@ void main()
     // attenuation (use quadratic as we have gamma correction)
     float distance = length(FragPos - lights[2].Position);
     result *= (1.0 / (distance*distance));
+    lighting += result;
+    }
+    //Directional light 4
+    {
+    vec3 lightDir = normalize(-lights[3].Position);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    float diff = max(dot(lightDir, normal), 0.0);
+    vec3 diffuse = lights[3].Color * diff * color;
+    vec3 specular = lights[3].Specular * spec * vec3(texture(material.texture_specular1, TexCoords));
+    vec3 result = diffuse + specular;
+    // attenuation (use quadratic as we have gamma correction)
+//     float distance = length(FragPos - lights[3].Position);
+    result *= (1.0 / (2));
     lighting += result;
     }
 
