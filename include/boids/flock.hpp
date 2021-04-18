@@ -35,6 +35,7 @@ public:
     const set<Boid *> &getBoids() const;
     const glm::vec3 &getCenterOfMass() const;
     void update(float delta_time);
+    void setCollisionDistance(float collisionDistance);
     void updateParallel();
     void add_boid(Boid* boid);
     void update_centers();
@@ -45,6 +46,7 @@ public:
     int size();
     void mulScale(float mul);
     void avoid_edges(float delta_time);
+    void setSepConst(float sepConst);
     float getCollisionDistence() const;
     float getDiameter() const;
     const glm::vec3 &getGeneralDirection() const;

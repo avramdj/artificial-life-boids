@@ -13,7 +13,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/vector_angle.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <engine/filesystem.hpp>
 #include <engine/shader.hpp>
@@ -70,9 +69,11 @@ struct ProgramState {
 //    glm::vec3 clearColor = glm::vec3(0.05, 0.2, 0.3);
     glm::vec3 clearColor = glm::vec3(0.05, 0.05, 0.1);
     Flock* flock = nullptr;
+    Flock* flock2 = nullptr;
     bool ImGuiEnabled = false;
     Camera camera;
-    bool CameraFixedCheck = false;
+    bool CameraFixedCheck = true;
+    bool CameraFixedCheck2 = false;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
     float fishScale = 1.0f;
     float fps = 0;
@@ -255,16 +256,22 @@ int main() {
     std::vector<glm::vec3> lightPositions;
     lightPositions.push_back(glm::vec3( 0.0f, 0.0f, 0.0f));
     lightPositions.push_back(glm::vec3( 0.0f, 0.0f, 0.0f));
+    lightPositions.push_back(glm::vec3( 0.0f, 0.0f, 0.0f));
     // colors
     std::vector<glm::vec3> lightColors;
-    lightColors.push_back(glm::vec3(5.0f,   5.0f,  5.0f));
-    lightColors.push_back(glm::vec3(0.0f,   6.0f,  5.0f));
+    lightColors.push_back(glm::vec3(6.0f,   6.0f,  6.0f));
+    lightColors.push_back(glm::vec3(7.0f,   1.0f,  5.0f));
+    lightColors.push_back(glm::vec3(7.0f,   2.0f,  1.0f));
 
+    std::vector<glm::vec3> lightSpecular;
+    lightSpecular.push_back(glm::vec3(6.0f,   6.0f,  6.0f));
+    lightSpecular.push_back(glm::vec3(7.0f,   1.0f,  5.0f));
+    lightSpecular.push_back(glm::vec3(7.0f,   2.0f,  1.0f));
+
+    glm::vec3 backpackposition = glm::vec3(0,-10, 30);
 
     // shader configuration
     // --------------------
-    shader.use();
-    shader.setInt("diffuseTexture", 0);
     shaderBlur.use();
     shaderBlur.setInt("image", 0);
     shaderBloomFinal.use();
@@ -276,6 +283,8 @@ int main() {
     // -----------
     Model loadedModel("resources/objects/fish/fish.obj");
     loadedModel.SetShaderTextureNamePrefix("material.");
+    Model backpack("resources/objects/backpack/backpack.obj");
+    backpack.SetShaderTextureNamePrefix("material.");
 
     //initialize flock
     //----------------
@@ -283,14 +292,30 @@ int main() {
     Flock flock;
     programState->flock = &flock;
     flock.setCubeDimension(30);
-    int posCap = 20;
-    int dposCap = 10;
-    int numBoids = 1000;
-    for(int i = 0; i < numBoids; i++){
-        flock.add_boid(new Boid(glm::vec3(frandom(-posCap, posCap), frandom(-posCap, posCap), frandom(-posCap, posCap)),
-                                glm::vec3(frandom(-dposCap, dposCap), frandom(-dposCap, dposCap), frandom(-dposCap, dposCap))));
+    {
+        int posCap = 20;
+        int dposCap = 10;
+        int numBoids = 1000;
+        for(int i = 0; i < numBoids; i++){
+            flock.add_boid(new Boid(glm::vec3(frandom(-posCap, posCap), frandom(-posCap, posCap), frandom(-posCap, posCap)),
+                                    glm::vec3(frandom(-dposCap, dposCap), frandom(-dposCap, dposCap), frandom(-dposCap, dposCap))));
+        }
     }
-
+    Flock flock2;
+    flock2.setCollisionDistance(20);
+    flock2.setSepConst(100);
+//    flock2.b_align = false;
+    programState->flock2 = &flock2;
+    flock.setCubeDimension(30);
+    {
+        int posCap = 20;
+        int dposCap = 10;
+        int numBoids = 500;
+        for(int i = 0; i < numBoids; i++){
+            flock2.add_boid(new Boid(glm::vec3(frandom(-posCap, posCap), frandom(-posCap, posCap), frandom(-posCap, posCap)),
+                                    glm::vec3(frandom(-dposCap, dposCap), frandom(-dposCap, dposCap), frandom(-dposCap, dposCap))));
+        }
+    }
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.5f, 1.0f, 0.0f);
     pointLight.ambient = glm::vec3(1, 0.65, 0.65);
@@ -468,20 +493,36 @@ int main() {
 
         // set lighting uniforms
         lightPositions[0] = flock.getCenterOfMass();
-        lightPositions[1] = flock.getCenterOfMass() + flock.getGeneralDirection()*30.0f;
+        lightPositions[1] = flock2.getCenterOfMass();// + flock.getGeneralDirection()*10.0f;
+        lightPositions[2] = backpackposition + glm::vec3(2*sin(currentFrame*2), sin(currentFrame*2), 2*cos(currentFrame*2));
 
         shader.use();
         for (unsigned int i = 0; i < lightPositions.size(); i++)
         {
             shader.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
             shader.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
+            shader.setVec3("lights[" + std::to_string(i) + "].Specular", lightSpecular[i]);
         }
         // render flock
         //-------------
         if(programState->fishScale != flock.getCollisionDistence()) {
             flock.mulScale(programState->fishScale);
+            flock2.mulScale(programState->fishScale);
         }
-        flock.update(deltaTime*7.5f);
+        glm::mat4 projectionBoid = glm::perspective(glm::radians(programState->camera.Zoom),
+                                                    (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 viewBoid;
+        if(programState->CameraFixedCheck){
+            programState->camera.lookAtCenter(flock.getCenterOfMass() - flock.getGeneralDirection()*5.0f);
+//                viewBoid = programState->camera.GetViewMatrix(flock.getCenterOfMass() - flock.getGeneralDirection() * 8.0f);
+        } else if (programState->CameraFixedCheck2){
+            programState->camera.lookAtCenter(flock2.getCenterOfMass() - flock2.getGeneralDirection()*5.0f);
+        }
+        viewBoid = programState->camera.GetViewMatrix();
+
+        shader.setMat4("projection", projectionBoid);
+        shader.setMat4("view", viewBoid);
+        flock.update(deltaTime*7.0f);
         for(Boid* boid : flock.getBoids()) {
             //spdlog::debug("{0} {1} {2}", boid->getPos().x, boid->getPos().y, boid->getPos().z);
             shader.use();
@@ -500,17 +541,6 @@ int main() {
             shader.setVec3("viewPosition", programState->camera.Position);
             shader.setFloat("material.shininess", 50.0f);
             // viewBoid/projectionBoid transformations
-            glm::mat4 projectionBoid = glm::perspective(glm::radians(programState->camera.Zoom),
-                                                        (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-            glm::mat4 viewBoid;
-            if(programState->CameraFixedCheck){
-                programState->camera.lookAtCenter(flock.getCenterOfMass() - flock.getGeneralDirection()*5.0f);
-//                viewBoid = programState->camera.GetViewMatrix(flock.getCenterOfMass() - flock.getGeneralDirection() * 8.0f);
-            }
-            viewBoid = programState->camera.GetViewMatrix();
-
-            shader.setMat4("projection", projectionBoid);
-            shader.setMat4("view", viewBoid);
 
             glm::mat4 boidModel = glm::mat4(1.0f);
             boidModel = glm::translate(boidModel,
@@ -521,12 +551,56 @@ int main() {
 
             boidModel = glm::rotate(boidModel, angle, glm::cross(glm::vec3(0,0,1), boid->getDirection()));
             boidModel = glm::scale(boidModel, glm::vec3(programState->fishScale / 2));    // it's a bit too big for our scene, so scale it down
+            boidModel = glm::scale(boidModel, glm::vec3(1,0.5,1));
 
             shader.setMat4("model", boidModel);
             loadedModel.Draw(shader);
 //            boid->getModel().Draw(shader);
         }
 
+        flock2.update(deltaTime*7.0f);
+        for(Boid* boid : flock2.getBoids()) {
+            //spdlog::debug("{0} {1} {2}", boid->getPos().x, boid->getPos().y, boid->getPos().z);
+            shader.use();
+            //pointLight.position = glm::vec3(1.0 * cos(currentFrame), 1.0f, 4.0 * sin(currentFrame));
+            pointLight.position = flock2.getCenterOfMass();
+//            spdlog::debug("{0}", flock2.getDiameter());
+            pointLight.constant = abs(cos(2.0f*currentFrame)) * 0.7f + 0.3f;
+            pointLight.ambient = glm::vec3(1 - std::min(18/flock2.getDiameter() - 0.4f, 1.0f), pointLight.ambient.y, pointLight.ambient.z);
+            shader.setVec3("pointLight.position", pointLight.position);
+            shader.setVec3("pointLight.ambient", pointLight.ambient);
+            shader.setVec3("pointLight.diffuse", pointLight.diffuse);
+            shader.setVec3("pointLight.specular", pointLight.specular);
+            shader.setFloat("pointLight.constant", pointLight.constant);
+            shader.setFloat("pointLight.linear", pointLight.linear);
+            shader.setFloat("pointLight.quadratic", pointLight.quadratic);
+            shader.setVec3("viewPosition", programState->camera.Position);
+            shader.setFloat("material.shininess", 50.0f);
+            // viewBoid/projectionBoid transformations
+
+            glm::mat4 boidModel = glm::mat4(1.0f);
+            boidModel = glm::translate(boidModel,
+                                       boid->getPos()); // translate it down so it's at the center of the scene
+//            glm::mat4 RotationMatrix = glm::inverse(glm::lookAt(boid->getPos(), boid->getPos() + boid->getDirection(), glm::vec3(0.0f, 1.0f, 0.0f)));
+//            boidModel *= RotationMatrix;
+            float angle = glm::orientedAngle(glm::normalize(boid->getDirection()), glm::vec3(0,0,1), glm::vec3(0,0,1));
+
+            boidModel = glm::rotate(boidModel, angle, glm::cross(glm::vec3(0,0,1), boid->getDirection()));
+            boidModel = glm::scale(boidModel, glm::vec3(programState->fishScale / 2));    // it's a bit too big for our scene, so scale it down
+            boidModel = glm::scale(boidModel, glm::vec3(1,0.5,1));
+
+            shader.setMat4("model", boidModel);
+            loadedModel.Draw(shader);
+//            boid->getModel().Draw(shader);
+        }
+
+        //draw guitar
+        shader.use();
+        glm::mat4 guitarModel = glm::mat4(1.0f);
+        guitarModel = glm::translate(guitarModel, backpackposition);
+        shader.setMat4("model", guitarModel);
+        shader.setFloat("material.shininess", 100.0f);
+        backpack.Draw(shader);
 
         glBindVertexArray(cubeVAO);
         glActiveTexture(GL_TEXTURE0);
@@ -591,8 +665,7 @@ int main() {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
         shaderBloomFinal.setInt("bloom", true);
-        float exp = std::max(80/(flock.getDiameter()+1), 1.0f);
-        shaderBloomFinal.setFloat("exposure", 1);
+        shaderBloomFinal.setFloat("exposure", 1.0f);
         renderQuad();
 
         if (programState->ImGuiEnabled)
@@ -679,7 +752,8 @@ void DrawImGui(ProgramState *state) {
         ImGui::DragFloat("pointLight.constant", &state->pointLight.constant, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.linear", &state->pointLight.linear, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.quadratic", &state->pointLight.quadratic, 0.05, 0.0, 1.0);
-        ImGui::Checkbox("Fix camera to center", &state->CameraFixedCheck);
+        ImGui::Checkbox("Fix camera to white", &state->CameraFixedCheck);
+        ImGui::Checkbox("Fix camera to purple", &state->CameraFixedCheck2);
         ImGui::Checkbox("Separation", &(state->flock->b_separate));
         ImGui::Checkbox("Alignment", &(state->flock->b_align));
         ImGui::Checkbox("Cohesion", &(state->flock->b_cohere));

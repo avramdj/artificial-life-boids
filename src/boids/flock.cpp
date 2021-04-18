@@ -41,7 +41,6 @@ void Flock::update_centers() {
  * Update direction of all boids to account for collision avoidance.
  */
 void Flock::separate(float delta_time) {
-    //TODO
     for(Boid* boid : boids) {
         for(Boid* other : boids) {
             glm::vec3 sub = boid->getPos() - other->getPos();
@@ -168,4 +167,12 @@ float Flock::getDiameter() const {
 
 const glm::vec3 &Flock::getGeneralDirection() const {
     return general_direction;
+}
+
+void Flock::setCollisionDistance(float collisionDistance) {
+    collision_distance = collisionDistance;
+}
+
+void Flock::setSepConst(float sepConst) {
+    sep_const = sepConst;
 }
