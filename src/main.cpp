@@ -74,7 +74,7 @@ struct ProgramState {
     Camera camera;
     bool CameraFixedCheck = true;
     bool CameraFixedCheck2 = false;
-    glm::vec3 backpackPosition = glm::vec3(0.0f);
+    glm::vec3 subPosition = glm::vec3(0.0f);
     float fishScale = 1.0f;
     float fps = 0;
     PointLight pointLight{};
@@ -271,9 +271,9 @@ int main() {
     lightSpecular.push_back(glm::vec3(7.0f,   2.0f,  1.0f));
     lightSpecular.push_back(glm::vec3(0.5f,   0.5f,  0.5f));
 
-    glm::vec3 backpackposition = glm::vec3(0,-10, 30);
+    glm::vec3 subposition = glm::vec3(0,-10, 30);
 
-    // shader configuration
+    // shader configuration 
     // --------------------
     shaderBlur.use();
     shaderBlur.setInt("image", 0);
@@ -286,8 +286,8 @@ int main() {
     // -----------
     Model loadedModel("resources/objects/fish/fish.obj");
     loadedModel.SetShaderTextureNamePrefix("material.");
-    Model backpack("resources/objects/backpack/backpack.obj");
-    backpack.SetShaderTextureNamePrefix("material.");
+    Model sub("resources/objects/sub/sub.obj");
+    sub.SetShaderTextureNamePrefix("material.");
 
     //initialize flock
     //----------------
@@ -497,7 +497,7 @@ int main() {
         // set lighting uniforms
         lightPositions[0] = flock.getCenterOfMass();
         lightPositions[1] = flock2.getCenterOfMass();// + flock.getGeneralDirection()*10.0f;
-        lightPositions[2] = backpackposition + glm::vec3(2*sin(currentFrame*2), sin(currentFrame*2), 3*cos(currentFrame*2));
+        lightPositions[2] = subposition + glm::vec3(4*sin(currentFrame*2), 4*cos(currentFrame*2), 6*sin(currentFrame*2));
 
         shader.use();
         for (unsigned int i = 0; i < lightPositions.size(); i++)
@@ -597,13 +597,14 @@ int main() {
 //            boid->getModel().Draw(shader);
         }
 
-        //draw guitar
+        //draw submarine
         shader.use();
-        glm::mat4 guitarModel = glm::mat4(1.0f);
-        guitarModel = glm::translate(guitarModel, backpackposition);
-        shader.setMat4("model", guitarModel);
+        glm::mat4 submarineModel = glm::mat4(1.0f);
+        submarineModel = glm::translate(submarineModel, subposition);
+        submarineModel = glm::scale(submarineModel, glm::vec3(0.75f));
+        shader.setMat4("model", submarineModel);
         shader.setFloat("material.shininess", 50.0f);
-        backpack.Draw(shader);
+        sub.Draw(shader);
 
 
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
