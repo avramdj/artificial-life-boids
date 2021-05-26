@@ -192,8 +192,8 @@ int main() {
     Shader shaderCube("resources/shaders/6.1.cubemaps.vs", "resources/shaders/6.1.cubemaps.fs");
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
 //    Shader shader("resources/shaders/boid.vs", "resources/shaders/boid.fs");
-    Shader shader("resources/shaders/7.bloom.vs", "resources/shaders/7.bloom.fs");
-    Shader shaderLight("resources/shaders/7.bloom.vs", "resources/shaders/7.light_box.fs");
+    Shader shader("resources/shaders/shader.vs", "resources/shaders/shader.fs");
+    Shader shaderLight("resources/shaders/shader.vs", "resources/shaders/7.light_box.fs");
     Shader shaderBlur("resources/shaders/7.blur.vs", "resources/shaders/7.blur.fs");
     Shader shaderBloomFinal("resources/shaders/7.bloom_final.vs", "resources/shaders/7.bloom_final.fs");
 
@@ -305,8 +305,6 @@ int main() {
         }
     }
     Flock flock2;
-    flock2.setCollisionDistance(20);
-    flock2.setSepConst(100);
 //    flock2.b_align = false;
     programState->flock2 = &flock2;
     flock.setCubeDimension(30);
